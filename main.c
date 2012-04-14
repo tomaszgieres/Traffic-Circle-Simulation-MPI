@@ -1,50 +1,21 @@
 #include <stdio.h>
-#include <stdlib.h>
-#include <time.h>
+
+#include "functions.c"
 
 #define SIMPLE_DEBUG_TARGET stdout
 #define FULL_DEBUG_TARGET stdout
 
-int offset[4] = {0, 4, 8, 12};
+
 
 /**
  * Lista możiliwych wjazdów na rondo
  */
-typedef enum T_ENTRANCE {N, W, S, E} Entrance;
 
-/**
- * Funkcja losująca docelowy wyjazd samochodu w zależności od wjazdu, na którym samochód się pojawi.
- */
-int choose_exit(Entrance entrance_number) {
-	float random = (float)rand() / (float)RAND_MAX;
-
-	const float CHANCES[4][4] = { /* Original: */
-			{0.1, 0.2, 0.5, 0.2}, /* {0.1, 0.2, 0.5, 0.2}, */
-			{0.2, 0.1, 0.3, 0.4}, /* {0.2, 0.1, 0.3, 0.4}, */
-			{0.5, 0.1, 0.1, 0.3}, /* {0.5, 0.1, 0.1, 0.3}, */
-			{0.3, 0.4, 0.2, 0.1}  /* {0.3, 0.4, 0.2, 0.1}, */
-	};
-
-	// n w s e
-	float dist_n, dist_w, dist_s;
-	dist_n = CHANCES[entrance_number][0];
-	dist_w = dist_n + CHANCES[entrance_number][1];
-	dist_s = dist_w + CHANCES[entrance_number][2];
-
-	Entrance exit_no;
-	if(random < dist_n) exit_no = N;
-	else if(dist_n <= random && random < dist_w) exit_no = W;
-	else if(dist_w <= random && random < dist_s) exit_no = S;
-	else exit_no = E;
-	fprintf(FULL_DEBUG_TARGET, "| Zrodlo[%d] Cel[%d] rand[%f]", offset[entrance_number], offset[exit_no], random);
-
-	return offset[exit_no];
-}
 
 int main() {
 	srand(time(NULL));
 
-	fprintf(FULL_DEBUG_TARGET, "## Start ##\n");
+	//fprintf(FULL_DEBUG_TARGET, "## Start ##\n");
 
 	int circle[16];
 	int new_circle[16];
@@ -58,21 +29,21 @@ int main() {
 	int i = 0;
 	unsigned int iteration = 0;
 
-	unsigned int requested_iterations = 10000;
+	unsigned int requested_iterations = 32000;
 	const int f[4] = {3, 3, 4, 2}; // Original: {3, 3, 4, 2};
-	fprintf(FULL_DEBUG_TARGET, "## Start ##\n");
+	//fprintf(FULL_DEBUG_TARGET, "## Start ##\n");
 
 	for(i = 0; i<= 15; ++i) {
 		circle[i] = -1;
-		fprintf(FULL_DEBUG_TARGET, "## Start A##\n");
+		//fprintf(FULL_DEBUG_TARGET, "## Start A##\n");
 	} // endfor
 	for(i=0; i<=3; i++) {
 		arrival_cnt[i] = 0;
 		wait_cnt[i] = 0;
 		queue[i] = 0;
 		queue_accum[i] = 0;
-		fprintf(FULL_DEBUG_TARGET, "%d %d %d %d \n", arrival_cnt[i], wait_cnt[i], queue[i], queue_accum[i]);
-		fprintf(FULL_DEBUG_TARGET, "## Start B %d ##\n", i);
+		//fprintf(FULL_DEBUG_TARGET, "%d %d %d %d \n", arrival_cnt[i], wait_cnt[i], queue[i], queue_accum[i]);
+		//fprintf(FULL_DEBUG_TARGET, "## Start B %d ##\n", i);
 	} // endfor
 
 
@@ -80,7 +51,7 @@ int main() {
 
 	for(iteration = 0; iteration <= requested_iterations; iteration++) {
 		unsigned int k;
-		printf("def SIMPLE_DEBUG_TARGET\n");
+		//printf("def SIMPLE_DEBUG_TARGET\n");
 		for(k=0; k<=15; ++k) {
 			if(circle[k] == -1) {
 				fprintf(SIMPLE_DEBUG_TARGET, "[  ] ");
@@ -91,9 +62,9 @@ int main() {
 		fprintf(SIMPLE_DEBUG_TARGET, "\n");
 
 
-		fprintf(FULL_DEBUG_TARGET, "------------\nIteracja numer: %d\n", iteration);
+		//fprintf(FULL_DEBUG_TARGET, "------------\nIteracja numer: %d\n", iteration);
 		// Przyjeżdżają nowe samochody
-		fprintf(FULL_DEBUG_TARGET, "1) Przyjeżdżają nowe samochody\n");
+		//fprintf(FULL_DEBUG_TARGET, "1) Przyjeżdżają nowe samochody\n");
 		for(i=0; i<=3; ++i) {
 			//printf("f[i] int %d float %f double %f\n", f[i], (float)f[i], (double)f[i]);
 			const float u = (rand()/(float)RAND_MAX);
@@ -104,49 +75,49 @@ int main() {
 			} else {
 				arrival[i] = 0;
 			} // endif
-			fprintf(FULL_DEBUG_TARGET, "\t- na wjeździe numer %d przyjazd samochodu %d \t| u[%f] f[i][%f] 1/f[i][%f]\n", i, arrival[i], u, (float)f[i], prob);
+			//fprintf(FULL_DEBUG_TARGET, "\t- na wjeździe numer %d przyjazd samochodu %d \t| u[%f] f[i][%f] 1/f[i][%f]\n", i, arrival[i], u, (float)f[i], prob);
 		} // endfor
 
 		// Nastepuje iteracja, ruch na rondzie
-		fprintf(FULL_DEBUG_TARGET, "2) Ruch na rondzie\n");
+		//fprintf(FULL_DEBUG_TARGET, "2) Ruch na rondzie\n");
 		for(i=0; i<=15; ++i) {
 			const int j = (i+1) % 16;
-			fprintf(FULL_DEBUG_TARGET, "\t- sektor[%2d]=%2d ", i, circle[i]);
+			//fprintf(FULL_DEBUG_TARGET, "\t- sektor[%2d]=%2d ", i, circle[i]);
 			if( (circle[i] == -1) || (circle[i] == j)) {
 				new_circle[j] = -1;
 
 			} else {
 				new_circle[j] = circle[i];
 			} // endif
-			fprintf(FULL_DEBUG_TARGET, "\t| nowy_sektor[%2d]=%2d\n", j, new_circle[j]);
+			//fprintf(FULL_DEBUG_TARGET, "\t| nowy_sektor[%2d]=%2d\n", j, new_circle[j]);
 		} // endfor
 
 		for(i=0; i<=15; ++i) circle[i] = new_circle[i];
 
 		// Samochody wjeżdżają na rondo
-		fprintf(FULL_DEBUG_TARGET, "3) Samochody wjeżdżają na rondo\n");
+		//fprintf(FULL_DEBUG_TARGET, "3) Samochody wjeżdżają na rondo\n");
 		for(i=0; i<=3; ++i) {
-			fprintf(FULL_DEBUG_TARGET, "\t- wjazd numer %d: ", i);
+			//fprintf(FULL_DEBUG_TARGET, "\t- wjazd numer %d: ", i);
 			if(circle[offset[i]] == -1) {
-				fprintf(FULL_DEBUG_TARGET, "| JEST miejsce na wjazd ");
+				//fprintf(FULL_DEBUG_TARGET, "| JEST miejsce na wjazd ");
 				// Jest miejsce na wjazd samochodu
 				if(queue[i] > 0) {
 					// Czekający samochod wjezdza
 					queue[i]--;
 					circle[offset[i]] = choose_exit(i);
 					//fprintf(PRINT_TARGET, "\t kolejka %d \t cel %d", queue[i], circle[offset[i]]);
-					fprintf(FULL_DEBUG_TARGET, "| wjechał KOL | kolejka %d", queue[i]);
+					//fprintf(FULL_DEBUG_TARGET, "| wjechał KOL | kolejka %d", queue[i]);
 				} else if(arrival[i] > 0) {
 					// Samochod ktory nadjechal wjeżdża na rondo
 					arrival[i] = 0;
 					circle[offset[i]] = choose_exit(i);
-					fprintf(FULL_DEBUG_TARGET, "| wjechał TAK | kolejka %d", queue[i]);
+					//fprintf(FULL_DEBUG_TARGET, "| wjechał TAK | kolejka %d", queue[i]);
 				} // endif
-				fprintf(FULL_DEBUG_TARGET, "| cel %d\n", circle[offset[i]]);
+				//fprintf(FULL_DEBUG_TARGET, "| cel %d\n", circle[offset[i]]);
 
 			} else {
-				fprintf(FULL_DEBUG_TARGET, "| BRAK miejsca na wjazd ");
-				fprintf(FULL_DEBUG_TARGET, "| wjechał NIE | kolejka %d\n", queue[i]);
+				//fprintf(FULL_DEBUG_TARGET, "| BRAK miejsca na wjazd ");
+				//fprintf(FULL_DEBUG_TARGET, "| wjechał NIE | kolejka %d\n", queue[i]);
 			} // endif
 
 			if(arrival[i] > 0) {
@@ -168,11 +139,11 @@ int main() {
 	for(i=0; i<=3; ++i) fprintf(SIMPLE_DEBUG_TARGET, "%4d ", queue_accum[i]);
 	fprintf(SIMPLE_DEBUG_TARGET, "\n");
 
-	fprintf(SIMPLE_DEBUG_TARGET, "-----\nWyniki:\n");
+	fprintf(SIMPLE_DEBUG_TARGET, "-----\nWyniki po %d iteracji:\n", requested_iterations);
 	for(i=0; i<=3; ++i) {
 		const float AVG_QUEUE = (float)queue_accum[i]/(float)requested_iterations;
-		const float WAITING_PERC = 100.0f *(float)wait_cnt[i]/(float)arrival_cnt[i];
-		fprintf(SIMPLE_DEBUG_TARGET, "%d) Wjazd: srednia dlugosc kolejki: %f, procent samochodow, ktore musialy czekac: %f\n", i, AVG_QUEUE, WAITING_PERC);
+		const float WAITING_PERC = 100.0f * (float)wait_cnt[i]/(float)arrival_cnt[i];
+		fprintf(SIMPLE_DEBUG_TARGET, "%d) Średnia dl. kolejki: %f, Czekało: %f%\n", i, AVG_QUEUE, WAITING_PERC);
 	}
 
 

@@ -27,20 +27,14 @@ typedef enum T_ENTRANCE {N, W, S, E} Entrance;
 const int offset[4] = {0, 4, 8, 12};
 
 /**
- * Tablica prawdopodobienstw.
+ * Tablica prawdopodobienstw, wartości z treści zadania.
  * Zostaje nadpisana w funkcji load_data wartosciami z pliku params.txt
  */
-//float CHANCES[4][4] = { 		/* Original: */
-//		{0.1, 0.2, 0.5, 0.2}, 	/* {0.1, 0.2, 0.5, 0.2}, */
-//		{0.2, 0.1, 0.3, 0.4}, 	/* {0.2, 0.1, 0.3, 0.4}, */
-//		{0.5, 0.1, 0.1, 0.3}, 	/* {0.5, 0.1, 0.1, 0.3}, */
-//		{0.3, 0.4, 0.2, 0.1}  	/* {0.3, 0.4, 0.2, 0.1}, */
-//};
 float CHANCES[4][4] = { 		/* Original: */
-		{1,1,1,1}, 	/* {0.1, 0.2, 0.5, 0.2}, */
-		{1,1,1,1},/* {0.2, 0.1, 0.3, 0.4}, */
-		{1,1,1,1},/* {0.5, 0.1, 0.1, 0.3}, */
-		{1,1,1,1}/* {0.3, 0.4, 0.2, 0.1}, */
+		{0.1, 0.2, 0.5, 0.2}, 	/* {0.1, 0.2, 0.5, 0.2}, */
+		{0.2, 0.1, 0.3, 0.4}, 	/* {0.2, 0.1, 0.3, 0.4}, */
+		{0.5, 0.1, 0.1, 0.3}, 	/* {0.5, 0.1, 0.1, 0.3}, */
+		{0.3, 0.4, 0.2, 0.1}  	/* {0.3, 0.4, 0.2, 0.1}, */
 };
 
 /**
@@ -186,7 +180,7 @@ int main(int argc, char * argv[]) {
 
 	if(myid == 0) {
 
-		fprintf(stdout, "\n +--- Wyniki po %d iteracji:\n", REQUESTED_ITERATIONS);
+		fprintf(stdout, "\n +--- Wyniki po %d iteracji na kazdej z %d maszyn:\n", REQUESTED_ITERATIONS, numprocs);
 		printf("| %1s | %10s %10s %10s %10s %10s\n",
 				"",
 				"Nadjechalo",

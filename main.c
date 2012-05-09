@@ -1,22 +1,59 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "functions.h"
+#include <mpi.h>
 
-#define SIMPLE_DEBUG_TARGET stdout
-#define FULL_DEBUG_TARGET stdout
+/*
+ * Nagłówki funkcji.
+ * ----------------------------------------------------------------------------
+ */
+int choose_exit(const Entrance entrance_number);
+int load_data(float array[4][4], char * filename);
 
-// requested iterations
-// choose exit
-// offset
 
-/**
- * Lista możiliwych wjazdów na rondo
+/*
+ * Zmienne, parametry itp.
+ * ----------------------------------------------------------------------------
  */
 
+/**
+ * Liczba iteracji.
+ */
+const unsigned int REQUESTED_ITERATIONS = 32000;
 
+/**
+ * Oznaczenia wjazdów.
+ */
+typedef enum T_ENTRANCE {N, W, S, E} Entrance;
+
+/**
+ * Pozycje wjazdów.
+ */
+const int offset[4] = {0, 4, 8, 12};
+
+/**
+ * Tablica prawdopodobienstw.
+ * Zostaje nadpisana w funkcji load_data wartosciami z pliku params.txt
+ */
+float CHANCES[4][4] = { 		/* Original: */
+		{0.1, 0.2, 0.5, 0.2}, 	/* {0.1, 0.2, 0.5, 0.2}, */
+		{0.2, 0.1, 0.3, 0.4}, 	/* {0.2, 0.1, 0.3, 0.4}, */
+		{0.5, 0.1, 0.1, 0.3}, 	/* {0.5, 0.1, 0.1, 0.3}, */
+		{0.3, 0.4, 0.2, 0.1}  	/* {0.3, 0.4, 0.2, 0.1}, */
+};
+
+/**
+ * Częstotliwosć pojawiania się nowego samochodu na kolejnych wjazdach.
+ */
+const int f[4] = {3, 3, 4, 2}; // Original: {3, 3, 4, 2};
+
+
+
+
+/**
+ * --------------------------------------------------------
+ */
 int main() {
-	srand(time(NULL));
 
 	int circle[16];
 	int new_circle[16];
@@ -30,33 +67,25 @@ int main() {
 	int i = 0;
 	unsigned int iteration = 0;
 
-
-	const int f[4] = {3, 3, 4, 2}; // Original: {3, 3, 4, 2};
-
 	for(i = 0; i<= 15; ++i) {
 		circle[i] = -1;
-	} // endfor
+	}
 	for(i=0; i<=3; i++) {
 		arrival_cnt[i] = 0;
 		wait_cnt[i] = 0;
 		queue[i] = 0;
 		queue_accum[i] = 0;
-	} // endfor
+	}
 
-
-	fprintf(FULL_DEBUG_TARGET, "## Start ##\n");
+	/**
+	 * Odczytanie parametrow z pliku.
+	 * Uruchomienie srand() indywidualnie dla kazdego komputera.
+	 */
+	srand((unsigned) time(NULL) * rank + rank);
+	load_data(CHANCES, "params.txt");
 
 	for(iteration = 0; iteration <= REQUESTED_ITERATIONS; iteration++) {
 		unsigned int k;
-		for(k=0; k<=15; ++k) {
-			if(circle[k] == -1) {
-				fprintf(SIMPLE_DEBUG_TARGET, "[  ] ");
-			} else {
-				fprintf(SIMPLE_DEBUG_TARGET, "[%2d] ", circle[k]);
-			}
-		}
-		fprintf(SIMPLE_DEBUG_TARGET, "\n");
-
 
 		// Przyjeżdżają nowe samochody
 		for(i=0; i<=3; ++i) {
@@ -67,19 +96,18 @@ int main() {
 				arrival_cnt[i]++;
 			} else {
 				arrival[i] = 0;
-			} // endif
-		} // endfor
+			}
+		}
 
 		// Nastepuje iteracja, ruch na rondzie
 		for(i=0; i<=15; ++i) {
 			const int j = (i+1) % 16;
 			if( (circle[i] == -1) || (circle[i] == j)) {
 				new_circle[j] = -1;
-
 			} else {
 				new_circle[j] = circle[i];
-			} // endif
-		} // endfor
+			}
+		}
 
 		for(i=0; i<=15; ++i) circle[i] = new_circle[i];
 
@@ -95,40 +123,104 @@ int main() {
 					// Samochod ktory nadjechal wjeżdża na rondo
 					arrival[i] = 0;
 					circle[offset[i]] = choose_exit(i);
-				} // endif
-
+				}
 			} else {
 				// Nic sie nie dzieje
-			} // endif
+			}
 
 			if(arrival[i] > 0) {
 				// Samochód, który właśnie nadjechał ląduje w kolejce
 				wait_cnt[i]++;
 				queue[i]++;
-			} // endif
-		} // endfor
+			}
+		}
 		for(i=0; i<=3; ++i) {
 			queue_accum[i] += queue[i];
-		} // endfor
-	} // endfor iteration
-
-
-	fprintf(SIMPLE_DEBUG_TARGET, "arrival_cnt : ");
-	for(i=0; i<=3; ++i) fprintf(SIMPLE_DEBUG_TARGET, "%4d ", arrival_cnt[i]);
-	fprintf(SIMPLE_DEBUG_TARGET, "\nwait_cnt :\t");
-	for(i=0; i<=3; ++i) fprintf(SIMPLE_DEBUG_TARGET, "%4d ", wait_cnt[i]);
-	fprintf(SIMPLE_DEBUG_TARGET, "\nqueue_accum : ");
-	for(i=0; i<=3; ++i) fprintf(SIMPLE_DEBUG_TARGET, "%4d ", queue_accum[i]);
-	fprintf(SIMPLE_DEBUG_TARGET, "\n");
-
-	fprintf(SIMPLE_DEBUG_TARGET, "-----\nWyniki po %d iteracji:\n", REQUESTED_ITERATIONS);
-	for(i=0; i<=3; ++i) {
-		const float AVG_QUEUE = (float)queue_accum[i]/(float)REQUESTED_ITERATIONS;
-		const float WAITING_PERC = 100.0f * (float)wait_cnt[i]/(float)arrival_cnt[i];
-		//fprintf(SIMPLE_DEBUG_TARGET, "%d) Średnia dl. kolejki: %f, Czekało: %f%\n", i, AVG_QUEUE, WAITING_PERC);
+		}
 	}
 
 
+	fprintf(stdout, "arrival_cnt : ");
+	for(i=0; i<=3; ++i) fprintf(stdout, "%4d ", arrival_cnt[i]);
+	fprintf(stdout, "\nwait_cnt :\t");
+	for(i=0; i<=3; ++i) fprintf(stdout, "%4d ", wait_cnt[i]);
+	fprintf(stdout, "\nqueue_accum : ");
+	for(i=0; i<=3; ++i) fprintf(stdout, "%4d ", queue_accum[i]);
+	fprintf(stdout, "\n");
+
+	fprintf(stdout, "-----\nWyniki po %d iteracji:\n", REQUESTED_ITERATIONS);
+	for(i=0; i<=3; ++i) {
+		const float AVG_QUEUE = (float)queue_accum[i]/(float)REQUESTED_ITERATIONS;
+		const float WAITING_PERC = 100.0f * (float)wait_cnt[i]/(float)arrival_cnt[i];
+		fprintf(stdout, "[%d] Średnia dl. kolejki: %2.2f \t Odsetek czekających: %2.2f\n", i, AVG_QUEUE, WAITING_PERC);
+	}
 
 	return 0;
+}
+
+int load_data(float array[4][4], char * filename) {
+	FILE * fp = fopen(filename, "r");
+	if(!fp) {
+		fprintf(stderr, "Nie udało się otworzyć pliku z parametrami!\n");
+		return 0;
+	}
+
+	unsigned int i, j;
+	unsigned int line_cnt = 0;
+	while(!feof(fp)) {
+		fscanf( fp,
+				"%f %f %f %f\n",
+				&array[line_cnt][0],
+				&array[line_cnt][1],
+				&array[line_cnt][2],
+				&array[line_cnt][3] );
+		++line_cnt;
+	}
+
+	float sums[4] = {0,};
+	for(i=0; i<=3; ++i) {
+		for(j=0; j<=3; ++j) {
+			sums[i] += array[i][j];
+		}
+	}
+
+	for(i=0;i<=3;++i) {
+		if(sums[i] != 1.0) {
+			fprintf( stderr,
+					"| Tablica prawdopodobienstw ma bledy.\n"
+					"| Suma prawdopodobieństw dla zjazdu nr %d wynosi %f.\n"
+					"| Popraw plik params.txt tak, żeby suma prawdopodobienstw w kazdej linii wynosila 1.",
+					i, sums[i]);
+			return 0;
+		}
+	}
+
+	fprintf(stdout, "Tablica prawdopodobieństw:\n");
+	for(i=0;i<=3;++i) {
+		printf("%d. | ", i);
+		for(j=0; j<=3; ++j) {
+			printf("%1.2f  ", array[i][j]);
+		}
+		printf("| Suma: %f\n", sums[i]);
+	}
+
+	return 1;
+}
+
+int choose_exit(const Entrance entrance_number) {
+	float dist_n, dist_w, dist_s;
+	Entrance exit_no;
+
+	const float RANDOM = (float)rand() / (float)RAND_MAX;
+
+	dist_n = CHANCES[entrance_number][0];
+	dist_w = dist_n + CHANCES[entrance_number][1];
+	dist_s = dist_w + CHANCES[entrance_number][2];
+
+	if(RANDOM < dist_n) exit_no = N;
+	else if(dist_n <= RANDOM && RANDOM < dist_w) exit_no = W;
+	else if(dist_w <= RANDOM && RANDOM < dist_s) exit_no = S;
+	else exit_no = E;
+
+	return offset[exit_no];
 }

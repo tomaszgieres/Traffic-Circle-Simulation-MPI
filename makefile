@@ -1,18 +1,11 @@
-CC=gcc
-#CFLAGS=-g
-#LFLAGS=
+main: 
+	compile clean
 
-all:
+compile: main.c
+	mpicc.mpich main.c -o hello
 
-choose_exit_test: choose_exit_test.o functions.o
-	$(CC) choose_exit_test.o functions.o -o choose_exit_test
-
-choose_exit_unit_test.o: choose_exit_unit_test.c
-	$(CC) -c choose_exit_unit_test.c -o choose_exit_unit_test.o
-	
-functions.o: functions.c
-	$(CC) -c functions.c -o functions.o
-	 
+run:
+	mpirun -np 5 hello
 
 clean:
 	rm -f *.o

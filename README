@@ -1,0 +1,5 @@
+Traffic circle simulation with Monte Carlo methods.
+
+Written in C and MPI library for primitive parallelization.
+
+Algorithm is almost a copy-paste of the one in Michael J. Quinn, "Parallel Programing in C with MPI and OpenMPI" book.
